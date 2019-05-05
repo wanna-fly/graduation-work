@@ -3,6 +3,7 @@ import torch.nn as nn
 import torchvision
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cpu")
 
 class lstm_cell(nn.Module):
     def __init__(self, input_num, hidden_num):
@@ -32,10 +33,10 @@ class lstm_cell(nn.Module):
         return  ht, ct
 
 
-class ALSTM(nn.Module):
+class spatio_att_net(nn.Module):
 
     def __init__(self, input_num, hidden_num, num_layers,out_num ):
-        super(ALSTM, self).__init__()
+        super(spatio_att_net, self).__init__()
         # Make sure that `hidden_num` are lists having len == num_layers
         hidden_num = self._extend_for_multilayer(hidden_num, num_layers)
 
@@ -53,10 +54,10 @@ class ALSTM(nn.Module):
             cell_list.append(lstm_cell(cur_input_num,self.hidden_num[i]))
 
         self.cell_list = nn.ModuleList(cell_list)
-        self.conv=nn.Sequential(*list(torchvision.models.resnet101().children())[:-2])
+        self.conv=nn.Sequential(*list(torchvision.models.resnet101(pretrained=True).children())[:-2])
         for param in self.conv.parameters():
             param.requires_grad = False
-        self.conv=nn.Sequential(*list(torchvision.models.resnet101(pretrained=True).children())[:-2])
+        #self.conv=nn.Sequential(*list(torchvision.models.resnet101(pretrained=True).children())[:-2])
         self.Wha=nn.Linear(self.hidden_num[-1],49)
         self.fc=nn.Linear(self.hidden_num[-1],self.out_num)
         self.softmax=nn.Softmax(dim=1)
@@ -151,7 +152,7 @@ class temp_att_net(nn.Module):
 class spatio_temp_model(nn.Module):
     def __init__(self, input_size, lstm_hidden_size, rnn_hidden_size, out_num, num_lstm_layers=1, num_rnn_layers=1):
         super(spatio_temp_model,self).__init__()
-        self.spatio_att_net = ALSTM(input_size, lstm_hidden_size, num_lstm_layers, out_num)
+        self.spatio_att_net = spatio_att_net(input_size, lstm_hidden_size, num_lstm_layers, out_num)
         self.temp_att_net = temp_att_net(input_size, rnn_hidden_size, num_rnn_layers)
 
     def forward(self, x):
@@ -161,7 +162,7 @@ class spatio_temp_model(nn.Module):
         normalized_temp_att = nn.Softmax(dim=1)(torch.transpose(temp_att, 0, 1)) #normalization
         weighted_pred = torch.mul(normalized_temp_att.unsqueeze(2), out)
 
-        return weighted_pred
+        return weighted_pred, temp_att
 
 
 if __name__ == "__main__":

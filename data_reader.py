@@ -16,10 +16,9 @@ class VideoDataset(Dataset):
         self.clip_len = clip_len
         self.split = split
 
-        self.resize_height = 299
-        self.resize_width = 299
+        self.resize_height = 224
+        self.resize_width = 224
         self.crop_size = 112  ##
-
 
         if not self.check_integrity():
             raise RuntimeError('Dataset not found')
@@ -138,13 +137,16 @@ class VideoDataset(Dataset):
         capture.release()
 
     def load_frames(self, file_dir):
+        #print(file_dir)
+        with open('./sample_name.json', 'a', encoding='utf-8') as f:
+            f.writelines(file_dir+'\n')
         frames = sorted([os.path.join(file_dir, img) for img in os.listdir(file_dir)])
         #frame_count = len(frames)
         buffer = np.empty((self.clip_len, self.resize_height, self.resize_width,3), np.dtype('float32'))
         for i, frame_name in enumerate(frames):
             frame = np.array(cv2.imread(frame_name)).astype(np.float64)
             buffer[i] = frame
-            if i == 29:
+            if i == (self.clip_len-1):
                 break
         return buffer
     #返回类型timestep*H*W*C
@@ -205,11 +207,11 @@ if __name__ == "__main__":
 
         if i == 0:
             break
-    for j in range(inputs.size(0)):
-        for k in range(inputs.size(2)):
-            img = inputs[j,:,k,:,:]
-            #print(img.size())
-            imshow(img)
-            label = get_keys(my_map,labels[j].item())
-            print("class:",label)
+    # for j in range(inputs.size(0)):
+    #     for k in range(inputs.size(2)):
+    #         img = inputs[j,:,k,:,:]
+    #         #print(img.size())
+    #         imshow(img)
+    #         label = get_keys(my_map,labels[j].item())
+    #         print("class:",label)
 

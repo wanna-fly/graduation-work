@@ -11,9 +11,9 @@ class Path(object):
             return root_dir, output_dir
         elif database == 'hmdb51':
             # folder that contains class labels
-            root_dir = 'D:/hmdb51'
+            root_dir = 'D:\\hmdb51'
 
-            output_dir = 'D:/VAR/hmdb51'
+            output_dir = 'D:\\VAR\\hmdb51'
 
             return root_dir, output_dir
         else:
